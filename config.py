@@ -17,6 +17,7 @@ def get_config(is_train):
     config.lr = 1e-4
     config.iteration = 1000
     config.tmp_dir = "tmp_teste"
+    config.loss = "trains-loss"
   else:
     config.batch_size = 1
     config.result_dir = "teste_teste"
