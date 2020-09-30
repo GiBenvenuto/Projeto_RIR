@@ -13,7 +13,7 @@ def train_tf():
     config = get_config(is_train=True)  # Seta as configuracoes basicas (de treinamento)
     mkdir(config.tmp_dir)
     mkdir(config.ckpt_dir)
-    dh = FundusDataHandler(is_train=True, im_size=config.im_size)
+    dh = FundusDataHandler(is_train=True, im_size=config.im_size, db_size=config.db_size, db_type=0)
     reg = DIRNet(sess, config, "DIRNet", is_train=True)
 
     loss_file = []

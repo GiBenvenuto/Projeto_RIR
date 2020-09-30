@@ -1,5 +1,5 @@
 import tensorflow as tf
-from bicubic_interp import bicubic_interp_2d
+from bicubic import bicubic_interp_2d
 
 def WarpST(U, V, out_size, name='DeformableTransformer', **kwargs):
     """Deformable Transformer Layer with bicubic interpolation

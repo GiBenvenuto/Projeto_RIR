@@ -1,5 +1,5 @@
 import tensorflow as tf
-from WarpSTTensorflow import WarpST
+from AffineSTTensoeflow import AffineST
 from ops import *
 
 
@@ -22,21 +22,31 @@ class CNN(object):
              af - elu, 
              is_train - for reuse'''
 
-            x = conv2d(x, "conv1", 64, 3, 1,
+            x = conv2d(x, "conv1", 64, 3, 2,
                        "SAME", True, tf.nn.relu, self.is_train)
-            x = tf.nn.max_pool2d(x, [1,2,2,1], [1,2,2,1], "SAME")
+            # x = tf.nn.max_pool2d(x, [1,2,2,1], [1,2,2,1], "SAME")
 
-            x = conv2d(x, "conv2", 128, 3, 1,
+            x = conv2d(x, "conv2", 128, 3, 2,
                        "SAME", True, tf.nn.relu, self.is_train)
             # x = tf.nn.max_pool2d(x, [1, 2, 2, 1], [1, 2, 2, 1], "SAME")
 
-            x = conv2d(x, "conv3", 128, 3, 1,
+            x = conv2d(x, "conv3", 128, 3, 2,
                        "SAME", True, tf.nn.relu, self.is_train)
-            x = tf.nn.max_pool2d(x, [1,2,2,1], [1,2,2,1], "SAME")
+            # x = tf.nn.max_pool2d(x, [1,2,2,1], [1,2,2,1], "SAME")
 
-            x = conv2d(x, "conv4", 2, 3, 1,
-                       "SAME", False, False, self.is_train)
+            x = conv2d(x, "conv4", 2, 3, 2,
+                       "SAME", True, tf.nn.relu, self.is_train)
 
+            x = tf.compat.v1.layers.Flatten()(x)
+
+            x = tf.keras.layers.Dense(1024)(x)
+
+            x = tf.compat.v1.layers.Dense(64)(x)
+
+            initializer = tf.keras.initializers.Zeros()
+            bias = tf.keras.initializers.constant([1, 0, 0, 0, 1, 0])
+
+            x = tf.compat.v1.layers.Dense(6, kernel_initializer=initializer, bias_initializer=bias)(x)
 
 
         if self.reuse is None:
@@ -75,7 +85,8 @@ class DIRNet(object):
 
         # Teste para mudar a transformação
         # Precisa mudar a rede para retornar os parâmetros certos
-        self.z = WarpST(self.x, self.v, config.im_size)
+        # self.z = AffineST(self.x, self.v)
+        self.z = AffineST(self.x, self.v, config.im_size)
 
         if self.is_train:
             self.loss = ncc(self.y, self.z)
