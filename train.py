@@ -33,7 +33,7 @@ def train_tf():
     p.salve_training_data(loss_file, config.loss)
 
 def plot():
-    p.plot_graph()
+    p.plot_graph("trains-loss")
 
 
 
