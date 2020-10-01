@@ -43,6 +43,15 @@ class FundusDataHandler(object):
             P_files_fix = glob.glob("DataBases/Segmentadas/P_s_fix/*.jpg")
             P_files_mov = glob.glob("DataBases/Segmentadas/P_s_mov/*.jpg")
 
+            files_fix.append(A_files_fix)
+            files_fix.append(P_files_fix)
+
+            files_fix.append(S_files_fix)
+            files_mov.append(S_files_mov)
+
+            files_mov.append(A_files_mov)
+            files_mov.append(P_files_mov)
+
         elif(type == 1):
             #Caminho para as imagens reais
             A_files_fix = glob.glob("DataBases/Originais/A_fix/*.jpg")
@@ -54,20 +63,24 @@ class FundusDataHandler(object):
             P_files_fix = glob.glob("DataBases/Originais/P_fix/*.jpg")
             P_files_mov = glob.glob("DataBases/Originais/P_mov/*.jpg")
 
+            files_fix.append(A_files_fix)
+            files_fix.append(P_files_fix)
+
+            files_fix.append(S_files_fix)
+            files_mov.append(S_files_mov)
+
+            files_mov.append(A_files_mov)
+            files_mov.append(P_files_mov)
+
         else:
             #Caminho para as imagens S aumentadas
             S_files_fix = glob.glob("DataBases/Aumentadas/aug_fix_S/*.png")
             S_files_mov = glob.glob("DataBases/Aumentadas/aug_moving_S/*.png")
 
-        if (type == 0 or type == 1):
-            files_fix.append(A_files_fix)
-            files_fix.append(P_files_fix)
+            files_fix.append(S_files_fix)
+            files_mov.append(S_files_mov)
 
-            files_mov.append(A_files_mov)
-            files_mov.append(P_files_mov)
 
-        files_fix.append(S_files_fix)
-        files_mov.append(S_files_mov)
 
         return files_fix, files_mov
 
@@ -96,8 +109,8 @@ class FundusDataHandler(object):
         else:
             img = cv2.imread(self.files_mov[ind][i])
 
-        img = cv2.resize(img, self.im_size, interpolation=cv2.INTER_CUBIC)
         img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        img = cv2.resize(img, self.im_size, interpolation=cv2.INTER_CUBIC)
         img = img.reshape(img.shape + (1,))
 
         return img

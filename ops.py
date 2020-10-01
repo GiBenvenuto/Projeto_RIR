@@ -1,8 +1,7 @@
 import tensorflow as tf
 import os
 import skimage.io
-import csv
-import numpy as np
+
 
 
 def conv2d(x, name, dim, k, s, p, bn, af, is_train):
@@ -77,11 +76,4 @@ def save_image_with_scale(path, arr):
     skimage.io.imsave(path, arr)
 
 
-def salve_training_data(loss, name):
-    csv.field_size_limit(393216)
-    with open("Files/" + name, 'w') as csvfile:
-        for i in loss:
-            row = str(i) + "\n"
-            csvfile.write(row)
 
-    csvfile.close()

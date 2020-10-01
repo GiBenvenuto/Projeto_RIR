@@ -48,7 +48,6 @@ class CNN(object):
 
             x = tf.compat.v1.layers.Dense(6, kernel_initializer=initializer, bias_initializer=bias)(x)
 
-
         if self.reuse is None:
             self.var_list = tf.compat.v1.get_collection(
                 tf.compat.v1.GraphKeys.GLOBAL_VARIABLES, scope=self.name)

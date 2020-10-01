@@ -3,9 +3,9 @@ from fundus_data import FundusDataHandler
 from config import get_config
 import tensorflow as tf
 from ops import mkdir
-from ops import salve_training_data
+from Utils import plots as p
 from DirnetTensorflow import DIRNet
-
+#from DirnetAffineTensorflow import DIRNet
 
 
 def train_tf():
@@ -19,7 +19,7 @@ def train_tf():
     loss_file = []
 
     for i in range(config.iteration):
-        batch_x, batch_y = dh.sample_pair(config.batch_size, 1)
+        batch_x, batch_y = dh.sample_pair(config.batch_size, 2)
         # label 1 para treinar com a categoria S (que tem as imagens mais parecidas)
 
         loss = reg.fit(batch_x, batch_y)
@@ -30,9 +30,12 @@ def train_tf():
             reg.save(config.ckpt_dir)
 
     # Salvando os dados para análise
-    salve_training_data(loss_file, config.loss)
+    p.salve_training_data(loss_file, config.loss)
+
+def plot():
+    p.plot_graph()
 
 
 
 if __name__ == "__main__":
-    train_tf()
+    plot()

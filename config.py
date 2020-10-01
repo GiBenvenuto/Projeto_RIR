@@ -13,13 +13,13 @@ def get_config(is_train):
 
 
   if is_train:
-    config.batch_size = 1
+    config.batch_size = 4
     config.lr = 1e-4
     config.iteration = 1000
     config.tmp_dir = "tmp_teste"
     config.loss = "trains-loss"
   else:
-    config.batch_size = 1
+    config.batch_size = 10
     config.result_dir = "teste_teste"
 
   return config
