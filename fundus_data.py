@@ -44,12 +44,10 @@ class FundusDataHandler(object):
             P_files_mov = glob.glob("DataBases/Segmentadas/P_s_mov/*.jpg")
 
             files_fix.append(A_files_fix)
-            files_fix.append(P_files_fix)
-
             files_fix.append(S_files_fix)
-            files_mov.append(S_files_mov)
-
+            files_fix.append(P_files_fix)
             files_mov.append(A_files_mov)
+            files_mov.append(S_files_mov)
             files_mov.append(P_files_mov)
 
         elif(type == 1):
@@ -64,12 +62,10 @@ class FundusDataHandler(object):
             P_files_mov = glob.glob("DataBases/Originais/P_mov/*.jpg")
 
             files_fix.append(A_files_fix)
-            files_fix.append(P_files_fix)
-
             files_fix.append(S_files_fix)
-            files_mov.append(S_files_mov)
-
+            files_fix.append(P_files_fix)
             files_mov.append(A_files_mov)
+            files_mov.append(S_files_mov)
             files_mov.append(P_files_mov)
 
         else:
@@ -109,7 +105,7 @@ class FundusDataHandler(object):
         else:
             img = cv2.imread(self.files_mov[ind][i])
 
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        img = img[:,:,1]
         img = cv2.resize(img, self.im_size, interpolation=cv2.INTER_CUBIC)
         img = img.reshape(img.shape + (1,))
 

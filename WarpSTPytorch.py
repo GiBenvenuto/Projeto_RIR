@@ -1,5 +1,5 @@
 import torch
-from bicubic_interp import bicubic_interp_2d
+from bicubic import bicubic_interp_2d
 import numpy as np
 
 def diff_clamp(tensor, min, max):

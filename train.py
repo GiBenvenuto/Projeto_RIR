@@ -4,7 +4,8 @@ from config import get_config
 import tensorflow as tf
 from ops import mkdir
 from Utils import plots as p
-from DirnetTensorflow import DIRNet
+from UnetTensorflow import DIRNet
+#from DirnetTensorflow import DIRNet
 #from DirnetAffineTensorflow import DIRNet
 
 
@@ -19,7 +20,7 @@ def train_tf():
     loss_file = []
 
     for i in range(config.iteration):
-        batch_x, batch_y = dh.sample_pair(config.batch_size, 2)
+        batch_x, batch_y = dh.sample_pair(config.batch_size, 1)
         # label 1 para treinar com a categoria S (que tem as imagens mais parecidas)
 
         loss = reg.fit(batch_x, batch_y)
@@ -31,11 +32,9 @@ def train_tf():
 
     # Salvando os dados para análise
     p.salve_training_data(loss_file, config.loss)
-
-def plot():
-    p.plot_graph("trains-loss")
+    p.plot_graph()
 
 
 
 if __name__ == "__main__":
-    plot()
+    train_tf()

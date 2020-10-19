@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from fundus_data import FundusDataHandler
-from DirnetAffineTensorflow import DIRNet
+from UnetTensorflow import DIRNet
 from config import get_config
 from ops import mkdir
 
