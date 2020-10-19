@@ -1,29 +1,49 @@
 import tensorflow as tf
 import os
 import skimage.io
+import numpy as np
 
-
-
-def conv2d(x, name, dim, k, s, p, bn, af, is_train):
+def conv2d(input, name, dim, filter_size, strides, padding, activtion_func, batch_norm, is_train):
     with tf.compat.v1.variable_scope(name):
-        w = tf.compat.v1.get_variable('weight', [k, k, x.get_shape()[-1], dim],
+        w = tf.compat.v1.get_variable('weight', [filter_size, filter_size, input.get_shape()[-1], dim],
                                       initializer=tf.compat.v1.truncated_normal_initializer(stddev=0.01))
-        x = tf.nn.conv2d(x, w, [1, s, s, 1], p)
+        b = tf.compat.v1.get_variable('biases', [dim],
+                                      initializer=tf.constant_initializer(0.))
 
-        if bn:
-            x = batch_norm(x, "bn", is_train=is_train)
-        else:
-            b = tf.compat.v1.get_variable('biases', [dim],
-                                          initializer=tf.constant_initializer(0.))
-            x += b
+        layer = tf.nn.conv2d(input, w, [1, strides, strides, 1], padding)
 
-        if af:
-            x = af(x)
+        layer += b
 
-    return x
+        if activtion_func:
+            layer = activtion_func(layer)
 
+        if batch_norm:
+            layer = batch_normalization(layer, "bn", is_train=is_train)
 
-def batch_norm(x, name, momentum=0.9, epsilon=1e-5, is_train=True):
+    return layer
+
+def deconv2d (input, name, dim, filter_size, num_batch, output_shape, activtion_func, batch_norm, is_train):
+
+    with tf.compat.v1.variable_scope(name):
+        w = tf.compat.v1.get_variable('weight', [filter_size, filter_size, input.get_shape()[-1], dim],
+                                      initializer=tf.keras.initializers.glorot_uniform)
+        b = tf.compat.v1.get_variable('biases', [dim],
+                                      initializer=tf.constant_initializer(0.))
+
+        layer = tf.nn.conv2d_transpose(input=input, filters=w,
+                                       output_shape=[num_batch, output_shape, output_shape, dim],
+                                       strides=[1, 2, 2, 1], padding='SAME')
+        layer += b
+
+        if activtion_func:
+            layer = activtion_func(layer)
+
+        if batch_norm:
+            layer = batch_normalization(layer, "bn", is_train=is_train)
+
+    return layer
+
+def batch_normalization(x, name, momentum=0.9, epsilon=1e-5, is_train=True):
     return tf.keras.layers.BatchNormalization(momentum=momentum,
                                               epsilon=epsilon,
                                               scale=True,

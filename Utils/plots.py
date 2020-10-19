@@ -24,7 +24,7 @@ def load_training_data(name):
 
 
 def plot_graph(name):
-    y = load_training_data("trains-loss")
+    y = load_training_data(name)
     x = range(len(y))
     fig, ax = plt.subplots()
     ax.plot(x, y)
