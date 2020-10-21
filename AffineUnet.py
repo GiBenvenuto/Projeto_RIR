@@ -1,11 +1,12 @@
 import tensorflow as tf
-from WarpSTTensorflow import WarpST
+from AffineSTTensoeflow import AffineST
 from ops import *
 
 
 class CNN(object):
-    def __init__(self, name, is_train):
+    def __init__(self, name,batch, is_train):
         self.name = name
+        self.batch = batch
         self.is_train = is_train
         self.reuse = None
 
@@ -18,25 +19,68 @@ class CNN(object):
              k - shape filter, 
              s - strides, 
              p - padding, 
-             bn - bach nor                           malization, 
+             bn - bach normalization, 
              af - elu, 
              is_train - for reuse'''
+
+
             #input, name, dim, filter_size, strides, padding, activtion_func, batch_norm, is_train
-            x = conv2d(x, "conv1", 64, 3, 2,
+            #Channels: 64 Features Map:256
+            x1 = conv2d(x, "aconv1", 64, 3, 1,
                        "SAME", tf.nn.relu, True, self.is_train)
-            #x = tf.nn.max_pool2d(x, [1,2,2,1], [1,2,2,1], "SAME")
+            x1 = conv2d(x1, "aconv2", 64, 3, 1,
+                       "SAME", tf.nn.relu, True, self.is_train)
 
-            x = conv2d(x, "conv2", 128, 3, 2,
+            #Channels: 128 Features Map:128
+            x2 = tf.nn.max_pool2d(x1, [1,2,2,1], [1,2,2,1], "SAME")
+            x2 = conv2d(x2, "aconv3", 128, 3, 1,
+                       "SAME", tf.nn.relu, True, self.is_train)
+            x2 = conv2d(x2, "aconv4", 128, 3, 1,
+                       "SAME", tf.nn.relu, True, self.is_train)
+
+            #Channels: 256 Features Map:64
+            x3 = tf.nn.max_pool2d(x2, [1, 2, 2, 1], [1, 2, 2, 1], "SAME")
+            x3 = conv2d(x3, "aconv5", 256, 3, 1,
+                       "SAME", tf.nn.relu, True, self.is_train)
+            x3 = conv2d(x3, "aconv6", 256, 3, 1,
+                       "SAME", tf.nn.relu, True, self.is_train)
+
+
+
+            #input, name, dim, filter_size, num_batch, output_shape, activtion_func, batch_norm, is_train
+            #Channels: 256 Features Map:128
+            x4 = deconv2d(x3, "adeconv1", 256, 3, self.batch, 128, tf.nn.relu, True, self.is_train)
+            x4 = tf.concat([x2, x4], -1)
+            #Channels: 128 Features Map:128
+            x4 = conv2d(x4, "aconv7", 128, 3, 1,
                        "SAME",  tf.nn.relu, True, self.is_train)
-            # x = tf.nn.max_pool2d(x, [1, 2, 2, 1], [1, 2, 2, 1], "SAME")
+            x4 = conv2d(x4, "aconv8", 128, 3, 1,
+                       "SAME", tf.nn.relu, True, self.is_train)
 
-            x = conv2d(x, "conv3", 128, 3, 2,
-                       "SAME",  tf.nn.relu, True, self.is_train)
-            #x = tf.nn.max_pool2d(x, [1,2,2,1], [1,2,2,1], "SAME")
 
-            x = conv2d(x, "conv4", 2, 3, 2,
+            #Channels: 128 Features Map:256
+            x5 = deconv2d(x4, "adeconv2", 128, 3, self.batch, 256, tf.nn.relu, True, self.is_train)
+            x5 = tf.concat([x5, x1], -1)
+            #Channels: 256 Features Map:256
+            x5 = conv2d(x5, "aconv9", 64, 3, 1,
+                       "SAME", tf.nn.relu, True, self.is_train)
+            x5 = conv2d(x5, "aconv10", 64, 3, 1,
+                       "SAME", tf.nn.relu, True, self.is_train)
+
+            #Channels: 2 Features Map:256
+            x6 = conv2d(x5, "aconv11", 2, 1, 1,
                        "SAME", False, False, self.is_train)
 
+            x7 = tf.compat.v1.layers.Flatten()(x6)
+
+            x7 = tf.keras.layers.Dense(1024)(x7)
+
+            x7 = tf.compat.v1.layers.Dense(64)(x7)
+
+            initializer = tf.keras.initializers.Zeros()
+            bias = tf.keras.initializers.constant([1, 0, 0, 0, 1, 0])
+
+            x8 = tf.compat.v1.layers.Dense(6, kernel_initializer=initializer, bias_initializer=bias)(x7)
 
 
         if self.reuse is None:
@@ -45,7 +89,7 @@ class CNN(object):
             self.saver = tf.compat.v1.train.Saver(self.var_list)
             self.reuse = True
 
-        return x
+        return x8
 
     def save(self, sess, ckpt_path):
         self.saver.save(sess, ckpt_path)
@@ -54,7 +98,7 @@ class CNN(object):
         self.saver.restore(sess, ckpt_path)
 
 
-class DIRNet(object):
+class STN(object):
     def __init__(self, sess, config, name, is_train):
         tf.compat.v1.disable_eager_execution()
 
@@ -68,14 +112,15 @@ class DIRNet(object):
         self.y = tf.compat.v1.placeholder(tf.float32, im_shape)
         self.xy = tf.concat([self.x, self.y], 3)
 
-        self.vCNN = CNN("vector_CNN", is_train=self.is_train)
+        self.vCNN = CNN("vector_CNN", config.batch_size, is_train=self.is_train)
 
         # vector map & moved image
         self.v = self.vCNN(self.xy)
 
         # Teste para mudar a transformação
         # Precisa mudar a rede para retornar os parâmetros certos
-        self.z = WarpST(self.x, self.v, config.im_size)
+
+        self.z = AffineST(self.x, self.v, config.im_size)
 
         if self.is_train:
             self.loss = ncc(self.y, self.z)
@@ -84,8 +129,7 @@ class DIRNet(object):
             self.train = self.optim.minimize(
                 - self.loss, var_list=self.vCNN.var_list)
 
-        # self.sess.run(
-        #  tf.variables_initializer(self.vCNN.var_list))
+
         self.sess.run(
             tf.compat.v1.global_variables_initializer())
 
@@ -94,6 +138,11 @@ class DIRNet(object):
             self.sess.run([self.train, self.loss],
                           {self.x: batch_x, self.y: batch_y})
         return loss
+
+    def getWarp(self, x, y):
+        z = self.sess.run(self.z, {self.x: x, self.y: y})
+        return z
+
 
     def deploy(self, dir_path, x, y):
         z = self.sess.run(self.z, {self.x: x, self.y: y})
