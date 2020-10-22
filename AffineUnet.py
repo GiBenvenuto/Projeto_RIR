@@ -150,6 +150,7 @@ class STN(object):
             save_image_with_scale(dir_path + "/{:02d}_x.tif".format(i + 1), x[i, :, :, 0])
             save_image_with_scale(dir_path + "/{:02d}_y.tif".format(i + 1), y[i, :, :, 0])
             save_image_with_scale(dir_path + "/{:02d}_z.tif".format(i + 1), z[i, :, :, 0])
+        return z
 
     def save(self, dir_path):
         self.vCNN.save(self.sess, dir_path + "/model.ckpt")
