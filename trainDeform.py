@@ -38,7 +38,7 @@ def train_tf():
 
     # Salvando os dados para análise
     p.salve_training_data(dloss_file, config.dloss)
-    p.plot_graph()
+    p.plot_graph(config.dloss)
 
 
 

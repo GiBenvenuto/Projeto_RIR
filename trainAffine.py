@@ -37,7 +37,7 @@ def train_tf():
 
     # Salvando os dados para análise
     p.salve_training_data(aloss_file, config.aloss)
-    p.plot_graph()
+    p.plot_graph(config.aloss)
 
 
 if __name__ == "__main__":
