@@ -7,25 +7,25 @@ class Config(object):
 
 def get_config(is_train):
   config = Config()
-  config.im_size = [256, 256]#Dimensão da imagem
+  config.im_size = [512, 512]#Dimensão da imagem
   config.db_size = 134
-  config.ckpt_adir = "ckpt_aUnet_256"#Checkpoint
-  config.ckpt_ddir = "ckpt_dUnet_256"
+  config.ckpt_adir = "ckpt_Dirnet_unet_256"#Checkpoint
+  config.ckpt_ddir = "ckpt_dUnet_512B"
 
 
   if is_train:
-    config.batch_size = 4
+    config.batch_size = 8
     config.lr = 1e-4
-    config.iteration = 1000
-    config.tmp_adir = "tmp_aUnet_256"
-    config.aloss = "train_aUnet_256"
+    config.iteration = 10000
+    config.tmp_adir = "tmp_aUnet_512"
+    config.aloss = "train_aUnet_728"
 
-    config.tmp_ddir = "tmp_dUnet_256"
-    config.dloss = "train_dUnet_256"
+    config.tmp_ddir = "tmp_dUnet_512B"
+    config.dloss = "train_dUnet_512B"
 
   else:
     config.batch_size = 10
-    config.result_adir = "teste_aUnet_256"
-    config.result_ddir = "teste_dUnet_256"
+    config.result_adir = "teste_aUnet_512"
+    config.result_ddir = "teste-dUnet_512B"
 
   return config

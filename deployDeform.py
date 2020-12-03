@@ -10,9 +10,10 @@ def main():
   config = get_config(is_train=False)
   mkdir(config.result_ddir)
 
+
+  dh = FundusDataHandler(is_train=False, im_size=config.im_size, db_size=config.db_size, db_type=0)
   dunet = dUnet(sess, config, "dUnet", is_train=False)
   dunet.restore(config.ckpt_ddir)
-  dh = FundusDataHandler(is_train=False, im_size=config.im_size, db_size=config.db_size, db_type=0)
 
   #Para cada categoria da FIRE
   for i in range(3):

@@ -24,63 +24,28 @@ class CNN(object):
              is_train - for reuse'''
 
 
-            #input, name, dim, filter_size, strides, padding, activtion_func, batch_norm, is_train
-            #Channels: 64 Features Map:256
-            x1 = conv2d(x, "aconv1", 64, 3, 1,
+
+            x1 = conv2d(x, "aconv1", 4, 7, 1,
                        "SAME", tf.nn.relu, True, self.is_train)
-            x1 = conv2d(x1, "aconv2", 64, 3, 1,
+            x1 = conv2d(x1, "aconv11", 4, 7, 1,
+                        "SAME", tf.nn.relu, True, self.is_train)
+            x1 = tf.nn.max_pool2d(x1, [1,2,2,1], [1,2,2,1], "SAME")
+
+            x2 = conv2d(x1, "aconv2", 8, 3, 1,
+                        "SAME", tf.nn.relu, True, self.is_train)
+            x2 = conv2d(x2, "aconv22", 8, 3, 1,
+                        "SAME", tf.nn.relu, True, self.is_train)
+            x2 = tf.nn.max_pool2d(x2, [1, 2, 2, 1], [1, 2, 2, 1], "SAME")
+
+            x3 = conv2d(x2, "aconv3", 16, 3, 1,
                        "SAME", tf.nn.relu, True, self.is_train)
+            x3 = conv2d(x3, "aconv33", 16, 3, 1,
+                        "SAME", tf.nn.relu, True, self.is_train)
+            x3 = tf.nn.max_pool2d(x3, [1, 2, 2, 1], [1, 2, 2, 1], "SAME")
 
-            #Channels: 128 Features Map:128
-            x2 = tf.nn.max_pool2d(x1, [1,2,2,1], [1,2,2,1], "SAME")
-            x2 = conv2d(x2, "aconv3", 128, 3, 1,
-                       "SAME", tf.nn.relu, True, self.is_train)
-            x2 = conv2d(x2, "aconv4", 128, 3, 1,
-                       "SAME", tf.nn.relu, True, self.is_train)
-
-            #Channels: 256 Features Map:64
-            x3 = tf.nn.max_pool2d(x2, [1, 2, 2, 1], [1, 2, 2, 1], "SAME")
-            x3 = conv2d(x3, "aconv5", 256, 3, 1,
-                       "SAME", tf.nn.relu, True, self.is_train)
-            x3 = conv2d(x3, "aconv6", 256, 3, 1,
-                       "SAME", tf.nn.relu, True, self.is_train)
+            loc = dense(x3, 8, 65536, 6, "fc_loc")
 
 
-
-            #input, name, dim, filter_size, num_batch, output_shape, activtion_func, batch_norm, is_train
-            #Channels: 256 Features Map:128
-            x4 = deconv2d(x3, "adeconv1", 256, 3, self.batch, 128, tf.nn.relu, True, self.is_train)
-            x4 = tf.concat([x2, x4], -1)
-            #Channels: 128 Features Map:128
-            x4 = conv2d(x4, "aconv7", 128, 3, 1,
-                       "SAME",  tf.nn.relu, True, self.is_train)
-            x4 = conv2d(x4, "aconv8", 128, 3, 1,
-                       "SAME", tf.nn.relu, True, self.is_train)
-
-
-            #Channels: 128 Features Map:256
-            x5 = deconv2d(x4, "adeconv2", 128, 3, self.batch, 256, tf.nn.relu, True, self.is_train)
-            x5 = tf.concat([x5, x1], -1)
-            #Channels: 256 Features Map:256
-            x5 = conv2d(x5, "aconv9", 64, 3, 1,
-                       "SAME", tf.nn.relu, True, self.is_train)
-            x5 = conv2d(x5, "aconv10", 64, 3, 1,
-                       "SAME", tf.nn.relu, True, self.is_train)
-
-            #Channels: 2 Features Map:256
-            x6 = conv2d(x5, "aconv11", 2, 1, 1,
-                       "SAME", False, False, self.is_train)
-
-            x7 = tf.compat.v1.layers.Flatten()(x6)
-
-            x7 = tf.keras.layers.Dense(1024)(x7)
-
-            x7 = tf.compat.v1.layers.Dense(64)(x7)
-
-            initializer = tf.keras.initializers.Zeros()
-            bias = tf.keras.initializers.constant([1, 0, 0, 0, 1, 0])
-
-            x8 = tf.compat.v1.layers.Dense(6, kernel_initializer=initializer, bias_initializer=bias)(x7)
 
 
         if self.reuse is None:
@@ -89,7 +54,7 @@ class CNN(object):
             self.saver = tf.compat.v1.train.Saver(self.var_list)
             self.reuse = True
 
-        return x8
+        return loc
 
     def save(self, sess, ckpt_path):
         self.saver.save(sess, ckpt_path)
