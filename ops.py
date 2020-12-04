@@ -43,6 +43,45 @@ def deconv2d (input, name, dim, filter_size, num_batch, output_shape, activtion_
 
     return layer
 
+
+def dense(input, batch, input_size, output_size, name):
+    with tf.compat.v1.variable_scope(name):
+
+        w = tf.compat.v1.get_variable('weight_dense', [input_size, output_size],
+                                      initializer=tf.random_normal_initializer(0, stddev=0.01))
+
+        b = tf.compat.v1.get_variable('biases_dense', [output_size],
+                                      initializer=tf.constant_initializer([1., 0., 0., 0., 1., 0.]))
+        x = tf.reshape(input, [batch, -1])
+        layer = tf.matmul(x, w) + b
+
+        return layer
+
+
+def dense_iden(input, input_filter, output_filter, name, activtion_func):
+    with tf.compat.v1.variable_scope(name):
+        w = tf.constant_initializer(0.)
+
+        b = tf.kerastf.compat.v1.get_variable('biases', [dim],
+                                      initializer=tf.constant_initializer(0.)).initializers.constant([1, 0, 0, 0, 1, 0])
+
+        layer = tf.keras.layers.Dense(output_filter, kernel_initializer=w, bias_initializer=b)(input)
+
+        if activtion_func:
+            layer = activtion_func(layer)
+
+
+    return layer
+
+
+def loc_weights(out_size):
+    b = np.zeros((2,3), dtype='float32')
+    b[0, 0] = 1
+    b[1, 1] = 1
+    W = np.zeros((out_size, 6), dtype='float32')
+    weights = [W, b.flatten()]
+    return weights
+
 def batch_normalization(x, name, momentum=0.9, epsilon=1e-5, is_train=True):
     return tf.keras.layers.BatchNormalization(momentum=momentum,
                                               epsilon=epsilon,
@@ -80,6 +119,7 @@ def gc(y, x, z):
 # Mean Square Error
 def mse(x, y):
     return tf.math.reduce_mean(tf.square(x - y))
+
 
 
 def mkdir(dir_path):

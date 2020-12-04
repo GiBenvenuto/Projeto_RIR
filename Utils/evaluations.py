@@ -24,34 +24,37 @@ def mse_distance(src, tgt):
     m = mse(src, tgt)
     return m
 
-def load_test(path):
-    paths = glob.glob(path+"/*.tif")
+def load_bin(path):
+    src = cv2.imread(path)
+    src = src[:, :, 1]
+    ret, src = cv2.threshold(src, 80, 255, cv2.THRESH_BINARY)
+    src = src / 255
+    return src
+
+
+def load_test(path, ind):
+    paths = glob.glob(path + str(ind) + "/*.jpg")
+    #path_new = glob.glob("Morph_Filters_Op/" + str(ind) + "/*.jpg")
     srcs = []
     tgts = []
 
     for i in range(0, len(paths)):
         if (i%3 == 1):#Fixa
-            src = cv2.imread(paths[i])
-            src = src[:, :, 1]
-            ret, src = cv2.threshold(src, 80, 255, cv2.THRESH_BINARY)
-            src = src / 255
+            src = load_bin(paths[i])
             srcs.append(src)
         if (i%3 == 2):#Reg
-            tgt = cv2.imread(paths[i])
-            tgt = tgt[:, :, 1]
-            ret, tgt = cv2.threshold(tgt, 80, 255, cv2.THRESH_BINARY)
-            tgt = tgt / 255
+            tgt = load_bin(paths[i])
             tgts.append(tgt)
 
     return srcs, tgts
 
 def grading():
-    src = cv2.imread("../DataBases/Originais/S_mov/S62_2.jpg")
+    src = cv2.imread("../DataBases/Originais/S_mov/S01_2.jpg")
     #src = cv2.imread("../teste_dUnet_256_sel/0/01_y.tif")
-    src = cv2.resize(src, (256,256), interpolation=cv2.INTER_CUBIC)
+    src = cv2.resize(src, (512,512), interpolation=cv2.INTER_CUBIC)
     src = src[:, :, 1]
 
-    tgt = cv2.imread("../teste_dUnet_256_visualizacao/1/01_z.tif")
+    tgt = cv2.imread("../teste-ordem/1/01_z.tif")
     tgt = tgt[:, :, 1]
 
     s1 = src[0:64, 0:64]
@@ -102,39 +105,39 @@ def grading():
 
 
 def main():
-    src, tgt = load_test("../teste_dUnet_256_sel/0")
+    src, tgt = load_test("Morph_Filters_all/", 0)
     mean_data = []
 
     print("A")
 
     for i in range (len(src)):
-        mean_data.append(hausdorff(src[i], tgt[i]))
+        mean_data.append(dice_bin(src[i], tgt[i]))
 
     mean = s.mean(mean_data)
     print(mean)
     var = s.pstdev(mean_data, mu=mean)
     print(var)
 
-    src, tgt = load_test("../teste_dUnet_256_sel/1")
+    src, tgt = load_test("Morph_Filters_all/", 1)
     mean_data = []
 
     print("S")
 
     for i in range(len(src)):
-        mean_data.append(hausdorff(src[i], tgt[i]))
+        mean_data.append(dice_bin(src[i], tgt[i]))
 
     mean = s.mean(mean_data)
     print(mean)
     var = s.pstdev(mean_data, mu=mean)
     print(var)
 
-    src, tgt = load_test("../teste_dUnet_256_sel/2")
+    src, tgt = load_test("Morph_Filters_all/", 2)
     mean_data = []
 
     print("P")
 
     for i in range(len(src)):
-        mean_data.append(hausdorff(src[i], tgt[i]))
+        mean_data.append(dice_bin(src[i], tgt[i]))
 
     mean = s.mean(mean_data)
     print(mean)
@@ -143,4 +146,4 @@ def main():
 
 
 if __name__ == "__main__":
-    grading()
+    main()

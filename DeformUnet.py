@@ -4,9 +4,10 @@ from ops import *
 
 
 class CNN(object):
-    def __init__(self, name,batch, is_train):
+    def __init__(self, name, batch, img_size, is_train):
         self.name = name
         self.batch = batch
+        self.img_size = img_size
         self.is_train = is_train
         self.reuse = None
 
@@ -49,7 +50,7 @@ class CNN(object):
 
             #input, name, dim, filter_size, num_batch, output_shape, activtion_func, batch_norm, is_train
             #Channels: 256 Features Map:128
-            x4 = deconv2d(x3, "deconv1", 256, 3, self.batch, 128, tf.nn.relu, True, self.is_train)
+            x4 = deconv2d(x3, "deconv1", 256, 3, self.batch, int(self.img_size), tf.nn.relu, True, self.is_train)
             x4 = tf.concat([x2, x4], -1)
             #Channels: 128 Features Map:128
             x4 = conv2d(x4, "conv7", 128, 3, 1,
@@ -59,7 +60,7 @@ class CNN(object):
 
 
             #Channels: 128 Features Map:256
-            x5 = deconv2d(x4, "deconv2", 128, 3, self.batch, 256, tf.nn.relu, True, self.is_train)
+            x5 = deconv2d(x4, "deconv2", 128, 3, self.batch, int(self.img_size), tf.nn.relu, True, self.is_train)
             x5 = tf.concat([x5, x1], -1)
             #Channels: 256 Features Map:256
             x5 = conv2d(x5, "conv9", 64, 3, 1,
@@ -101,7 +102,7 @@ class STN(object):
         self.y = tf.compat.v1.placeholder(tf.float32, im_shape)
         self.xy = tf.concat([self.x, self.y], 3)
 
-        self.vCNN = CNN("vector_CNN", config.batch_size, is_train=self.is_train)
+        self.vCNN = CNN("vector_CNN", config.batch_size, config.im_size[0], is_train=self.is_train)
 
         # vector map & moved image
         self.v = self.vCNN(self.xy)
