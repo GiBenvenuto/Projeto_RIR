@@ -3,16 +3,17 @@ import os
 import skimage.io
 import numpy as np
 
-def conv2d(input, name, dim, filter_size, strides, padding, activtion_func, batch_norm, is_train):
+def conv2d(input, name, dim, filter_size, strides, padding, activtion_func, batch_norm, bias, is_train):
     with tf.compat.v1.variable_scope(name):
         w = tf.compat.v1.get_variable('weight', [filter_size, filter_size, input.get_shape()[-1], dim],
                                       initializer=tf.compat.v1.truncated_normal_initializer(stddev=0.01))
-        b = tf.compat.v1.get_variable('biases', [dim],
-                                      initializer=tf.constant_initializer(0.))
 
         layer = tf.nn.conv2d(input, w, [1, strides, strides, 1], padding)
 
-        layer += b
+        if bias:
+            b = tf.compat.v1.get_variable('biases', [dim],
+                                          initializer=tf.constant_initializer(0.))
+            layer += b
 
         if activtion_func:
             layer = activtion_func(layer)
@@ -54,24 +55,11 @@ def dense(input, batch, input_size, output_size, name):
                                       initializer=tf.constant_initializer([1., 0., 0., 0., 1., 0.]))
         x = tf.reshape(input, [batch, -1])
         layer = tf.matmul(x, w) + b
+        #layer = tf.nn.relu(layer)
 
         return layer
 
 
-def dense_iden(input, input_filter, output_filter, name, activtion_func):
-    with tf.compat.v1.variable_scope(name):
-        w = tf.constant_initializer(0.)
-
-        b = tf.kerastf.compat.v1.get_variable('biases', [dim],
-                                      initializer=tf.constant_initializer(0.)).initializers.constant([1, 0, 0, 0, 1, 0])
-
-        layer = tf.keras.layers.Dense(output_filter, kernel_initializer=w, bias_initializer=b)(input)
-
-        if activtion_func:
-            layer = activtion_func(layer)
-
-
-    return layer
 
 
 def loc_weights(out_size):
@@ -103,6 +91,11 @@ def ncc(x, y):
         mean_y2 - tf.square(mean_y)), [1, 2, 3], keepdims=True)
     div = tf.math.divide((x - mean_x) * (y - mean_y), (stddev_x * stddev_y))
     out = tf.math.reduce_mean(div)
+    return out
+
+def ssim(x, y):
+    ssim = tf.image.ssim(x, y, 1.0)
+    out = tf.math.reduce_mean(ssim)
     return out
 
 

@@ -1,6 +1,6 @@
 import numpy as np
 import glob, cv2
-
+from Utils import Convolution as conv
 
 class FundusDataHandler(object):
     """
@@ -11,8 +11,9 @@ class FundusDataHandler(object):
       im_size - dimensao das imagens
   """
 
-    def __init__(self, is_train, im_size, db_size, db_type):
+    def __init__(self, is_train, is_lbp, im_size, db_size, db_type):
         self.is_train = is_train
+        self.is_lbp = is_lbp
         self.size = db_size
         self.im_size = (im_size[0], im_size[1])
 
@@ -69,101 +70,27 @@ class FundusDataHandler(object):
             files_mov.append(S_files_mov)
             files_mov.append(P_files_mov)
 
-        else:
+        elif(type == 2):
             #Caminho para as imagens S aumentadas
-            S_files_fix = glob.glob("DataBases/Aumentadas/aug_fix_S/*.png")
-            S_files_mov = glob.glob("DataBases/Aumentadas/aug_moving_S/*.png")
+            S_files_fix = glob.glob("DataBases/P_Aug/P_Fix/*.png")
+            S_files_mov = glob.glob("DataBases/P_Aug/P_Mov/*.png")
+
+            files_fix.append(S_files_fix)
+            files_mov.append(S_files_mov)
+
+        else:
+            S_files_fix = glob.glob("DataBases/Aug_teste/Mov_seg/*.png")
+            S_files_mov = glob.glob("DataBases/Aug_teste/Mov_seg/*.png")
 
             files_fix.append(S_files_fix)
             files_mov.append(S_files_mov)
 
 
 
-        return files_fix, files_mov
-
-    def get_selected(self):
-        files_fix = []
-        files_mov = []
-
-        A = []
-        A.append("DataBases/Segmentadas/A_s_fix/A01_1.jpg")
-        A.append("DataBases/Segmentadas/A_s_fix/A02_1.jpg")
-        A.append("DataBases/Segmentadas/A_s_fix/A03_1.jpg")
-        A.append("DataBases/Segmentadas/A_s_fix/A04_1.jpg")
-        A.append("DataBases/Segmentadas/A_s_fix/A05_1.jpg")
-        A.append("DataBases/Segmentadas/A_s_fix/A06_1.jpg")
-        A.append("DataBases/Segmentadas/A_s_fix/A07_1.jpg")
-        A.append("DataBases/Segmentadas/A_s_fix/A08_1.jpg")
-        A.append("DataBases/Segmentadas/A_s_fix/A09_1.jpg")
-        A.append("DataBases/Segmentadas/A_s_fix/A10_1.jpg")
-        files_fix.append(A)
-
-        A = []
-        A.append("DataBases/Segmentadas/A_s_mov/A01_2.jpg")
-        A.append("DataBases/Segmentadas/A_s_mov/A02_2.jpg")
-        A.append("DataBases/Segmentadas/A_s_mov/A03_2.jpg")
-        A.append("DataBases/Segmentadas/A_s_mov/A04_2.jpg")
-        A.append("DataBases/Segmentadas/A_s_mov/A05_2.jpg")
-        A.append("DataBases/Segmentadas/A_s_mov/A06_2.jpg")
-        A.append("DataBases/Segmentadas/A_s_mov/A07_2.jpg")
-        A.append("DataBases/Segmentadas/A_s_mov/A08_2.jpg")
-        A.append("DataBases/Segmentadas/A_s_mov/A09_2.jpg")
-        A.append("DataBases/Segmentadas/A_s_mov/A10_2.jpg")
-        files_mov.append(A)
-
-        A = []
-        A.append("DataBases/Segmentadas/S_s_fix/S01_1.jpg")
-        A.append("DataBases/Segmentadas/S_s_fix/S02_1.jpg")
-        A.append("DataBases/Segmentadas/S_s_fix/S03_1.jpg")
-        A.append("DataBases/Segmentadas/S_s_fix/S04_1.jpg")
-        A.append("DataBases/Segmentadas/S_s_fix/S05_1.jpg")
-        A.append("DataBases/Segmentadas/S_s_fix/S06_1.jpg")
-        A.append("DataBases/Segmentadas/S_s_fix/S07_1.jpg")
-        A.append("DataBases/Segmentadas/S_s_fix/S08_1.jpg")
-        A.append("DataBases/Segmentadas/S_s_fix/S09_1.jpg")
-        A.append("DataBases/Segmentadas/S_s_fix/S10_1.jpg")
-        files_fix.append(A)
-
-        A = []
-        A.append("DataBases/Segmentadas/S_s_mov/S01_2.jpg")
-        A.append("DataBases/Segmentadas/S_s_mov/S02_2.jpg")
-        A.append("DataBases/Segmentadas/S_s_mov/S03_2.jpg")
-        A.append("DataBases/Segmentadas/S_s_mov/S04_2.jpg")
-        A.append("DataBases/Segmentadas/S_s_mov/S05_2.jpg")
-        A.append("DataBases/Segmentadas/S_s_mov/S06_2.jpg")
-        A.append("DataBases/Segmentadas/S_s_mov/S07_2.jpg")
-        A.append("DataBases/Segmentadas/S_s_mov/S08_2.jpg")
-        A.append("DataBases/Segmentadas/S_s_mov/S09_2.jpg")
-        A.append("DataBases/Segmentadas/S_s_mov/S10_2.jpg")
-        files_mov.append(A)
-
-        A = []
-        A.append("DataBases/Segmentadas/P_s_fix/P01_1.jpg")
-        A.append("DataBases/Segmentadas/P_s_fix/P02_1.jpg")
-        A.append("DataBases/Segmentadas/P_s_fix/P03_1.jpg")
-        A.append("DataBases/Segmentadas/P_s_fix/P04_1.jpg")
-        A.append("DataBases/Segmentadas/P_s_fix/P05_1.jpg")
-        A.append("DataBases/Segmentadas/P_s_fix/P06_1.jpg")
-        A.append("DataBases/Segmentadas/P_s_fix/P07_1.jpg")
-        A.append("DataBases/Segmentadas/P_s_fix/P08_1.jpg")
-        A.append("DataBases/Segmentadas/P_s_fix/P09_1.jpg")
-        A.append("DataBases/Segmentadas/P_s_fix/P10_1.jpg")
-        files_fix.append(A)
-
-        A = []
-        A.append("DataBases/Segmentadas/P_s_mov/P01_2.jpg")
-        A.append("DataBases/Segmentadas/P_s_mov/P02_2.jpg")
-        A.append("DataBases/Segmentadas/P_s_mov/P03_2.jpg")
-        A.append("DataBases/Segmentadas/P_s_mov/P04_2.jpg")
-        A.append("DataBases/Segmentadas/P_s_mov/P05_2.jpg")
-        A.append("DataBases/Segmentadas/P_s_mov/P06_2.jpg")
-        A.append("DataBases/Segmentadas/P_s_mov/P07_2.jpg")
-        A.append("DataBases/Segmentadas/P_s_mov/P08_2.jpg")
-        A.append("DataBases/Segmentadas/P_s_mov/P09_2.jpg")
-        A.append("DataBases/Segmentadas/P_s_mov/P10_2.jpg")
-        files_mov.append(A)
 
         return files_fix, files_mov
+
+
 
     def get_fire(self, choices, ind):
         fire_fix = []
@@ -174,16 +101,16 @@ class FundusDataHandler(object):
 
         for i in choices:
             #Imagens fixas
-            img = self.load_img(ind, i, True)
-            fire_fix.append(img / 255)
+            img = self.load_img(ind, i, True, self.is_lbp)
+            fire_fix.append(img)
 
             #Imagens em movimento
-            img = self.load_img(ind, i, False)
-            fire_mov.append(img / 255)
+            img = self.load_img(ind, i, False, self.is_lbp)
+            fire_mov.append(img)
 
         return fire_fix, fire_mov
 
-    def load_img(self, ind, i, is_fix):
+    def load_img(self, ind, i, is_fix, is_lbp):
         #Coverte os canais e redimensiona a imagem
         if (is_fix):
             img = cv2.imread(self.files_fix[ind][i])
@@ -192,40 +119,45 @@ class FundusDataHandler(object):
 
         img = img[:,:,1]
         img = cv2.resize(img, self.im_size, interpolation=cv2.INTER_CUBIC)
+        #img = img - cv2.GaussianBlur(img, (0, 0), 3) + 127
+
+        if is_lbp:
+            fe = conv.FeatureExtraction()
+            fe.setImg(img)
+            img = fe.convolution()
+        #cv2.imshow("teste", img)
         img = img.reshape(img.shape + (1,))
+        img = img/255
+
 
         return img
 
     def get_data(self):
-        print(self.files_fix[0])
-
-        if (self.is_train):
-            percent = 60
-        else:
-            percent = 100
-
+        #print(self.files_fix[0])
         n = len(self.files_fix)
-        for i in range (0, n):
-            size = len(self.files_fix[i])
-            lim = round(size * percent / 100)
+        for i in range(0, n):
+           size = len(self.files_fix[i])
 
-            #Escolhe as amostras aleatóriamente
-            choices = np.random.choice(size-1, int(lim))
-            #choices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-            fix, mov = self.get_fire(choices, i)
-            self.fire_fix.append(fix)
-            self.fire_mov.append(mov)
+           if (self.is_train):
+               choices = [x for x in range(int(size/2))]
+           else:
+               choices = [x for x in range(int(size))]
+
+           fix, mov = self.get_fire(choices, i)
+           self.fire_fix.append(fix)
+           self.fire_mov.append(mov)
 
 
 
 
-    def sample_pair(self, batch_size, label=None):
+    def sample_pair(self, batch_size, istrain, label=None):
         label = np.random.randint(3) if label is None else label
         x = []
         y = []
-        #Escolhe a amostra de imagens que vao ser testadas
-        choice = np.random.choice(len(self.fire_fix[label]), batch_size)
-        #choice = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        if istrain:
+            choice = np.random.choice(len(self.fire_fix[label]), batch_size)
+        else:
+            choice = range(0, batch_size)
 
         for i in choice:
             x.append(self.fire_fix[label][i])
@@ -233,6 +165,102 @@ class FundusDataHandler(object):
 
         x = np.array(x)
         y = np.array(y)
+        return y, x
+
+
+    def sample_pair_test(self):
+        x = []
+        y = []
+
+        imgx = cv2.imread("DataBases/P1.png")
+
+        imgx = imgx[:, :, 1]
+        imgx = cv2.resize(imgx, self.im_size, interpolation=cv2.INTER_CUBIC)
+        imgx = imgx.reshape(imgx.shape + (1,))
+        imgx = imgx / 255
+
+        x.append(imgx)
+
+        imgy = cv2.imread("DataBases/P1_1.png")
+
+        imgy = imgy[:, :, 1]
+        imgy = cv2.resize(imgy, self.im_size, interpolation=cv2.INTER_CUBIC)
+        imgy = imgy.reshape(imgy.shape + (1,))
+        imgy = imgy / 255
+
+        y.append(imgy)
+
+        x = np.array(x)
+        y = np.array(y)
+        return y, x
+
+
+
+
+    def sample_pair_choice(self, i, label=None):
+        label = np.random.randint(3) if label is None else label
+        x = []
+        y = []
+
+        x.append(self.fire_fix[label][i])
+        y.append(self.fire_mov[label][i])
+
+        x = np.array(x)
+        y = np.array(y)
         return x, y
+
+
+    def sample_par_path(self, path_x, path_y):
+        img_x = self.get_image_path(path_x)
+        img_y = self.get_image_path(path_y)
+
+        x = [img_x]
+        y = [img_y]
+
+        x = np.array(x)
+        y = np.array(y)
+
+        return x, y
+
+
+
+
+
+    def sample_pair_especific(self, cat, ind):
+        x = []
+        y = []
+
+
+        x.append(self.fire_fix[cat][ind])
+        y.append(self.fire_mov[cat][ind])
+
+        x = np.array(x)
+        y = np.array(y)
+        img_x = self.get_fix_image(cat, ind)
+        img_y = self.get_mov_image(cat, ind)
+
+        return x, img_x, y, img_y
+
+    def get_mov_image(self, ind, i):
+        img = self.load_img(ind, i, False, False)
+        return img
+
+    def get_fix_image(self, ind, i):
+        img = self.load_img(ind, i, True, False)
+        return img
+
+    def get_size_cats(self, i):
+        return len(self.files_fix[i])
+
+    def get_image_path(self, path):
+        img = cv2.imread(path)
+        img = img[:, :, 1]
+        img = cv2.resize(img, self.im_size, interpolation=cv2.INTER_CUBIC)
+        img = img.reshape(img.shape + (1,))
+        img = img / 255
+
+        return img
+
+
 
 

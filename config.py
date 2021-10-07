@@ -7,25 +7,22 @@ class Config(object):
 
 def get_config(is_train):
   config = Config()
-  config.im_size = [512, 512]#Dimensão da imagem
-  config.db_size = 134
-  config.ckpt_adir = "ckpt_Dirnet_unet_256"#Checkpoint
-  config.ckpt_ddir = "ckpt_dUnet_512B"
+  config.lsize = 512
+  config.im_size = [config.lsize, config.lsize]#Dimensão da imagem
+  config.db_size = 71 #tamanho da base
+  config.ckpt_ddir = "CKPT/ckpt_dUnet_512_1603"  #iretório checkpoint rede deform
 
 
   if is_train:
-    config.batch_size = 8
+    config.batch_size = 1
     config.lr = 1e-4
-    config.iteration = 10000
-    config.tmp_adir = "tmp_aUnet_512"
-    config.aloss = "train_aUnet_728"
+    config.iteration = 5000
 
-    config.tmp_ddir = "tmp_dUnet_512B"
-    config.dloss = "train_dUnet_512B"
+    config.tmp_ddir = "TMP/tmp_dUnet_256_100seg" #Diretório deform temporário
+    config.dloss = "Files/train_dUnet_256_100seg" #Diretório treinamento deform
 
   else:
-    config.batch_size = 10
-    config.result_adir = "teste_aUnet_512"
-    config.result_ddir = "teste-dUnet_512B"
+    config.batch_size = 1
+    config.result_ddir = "TESTES/Teste_512_1603_malha"
 
   return config

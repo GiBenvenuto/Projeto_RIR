@@ -1,10 +1,15 @@
 import numpy as np
-import cv2, glob
+import cv2, glob, csv
 import statistics as s
 from matplotlib import pyplot as plt
 import scipy.spatial.distance as sd
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import mean_squared_error as mse
+import wx
+from PIL import Image
+
+
+import tensorflow as tf
 
 def dice_bin(src, tgt):
     denom = src.sum() + tgt.sum()
@@ -24,126 +29,148 @@ def mse_distance(src, tgt):
     m = mse(src, tgt)
     return m
 
-def load_bin(path):
+
+def load_bin(path, size):
     src = cv2.imread(path)
+    src = cv2.resize(src, (size, size), cv2.INTER_CUBIC)
     src = src[:, :, 1]
     ret, src = cv2.threshold(src, 80, 255, cv2.THRESH_BINARY)
+    #cv2.imshow("teste", src)
+    #cv2.waitKey(0)
     src = src / 255
+
     return src
 
 
-def load_test(path, ind):
-    paths = glob.glob(path + str(ind) + "/*.jpg")
-    #path_new = glob.glob("Morph_Filters_Op/" + str(ind) + "/*.jpg")
+def load_test(paths_ref, paths_pro, size):
     srcs = []
     tgts = []
 
-    for i in range(0, len(paths)):
-        if (i%3 == 1):#Fixa
-            src = load_bin(paths[i])
-            srcs.append(src)
-        if (i%3 == 2):#Reg
-            tgt = load_bin(paths[i])
-            tgts.append(tgt)
+    for i in range(0, len(paths_ref)):
+        src = load_bin(paths_ref[i], size)
+        srcs.append(src)
+        tgt = load_bin(paths_pro[i], size)
+        tgts.append(tgt)
 
     return srcs, tgts
 
-def grading():
-    src = cv2.imread("../DataBases/Originais/S_mov/S01_2.jpg")
-    #src = cv2.imread("../teste_dUnet_256_sel/0/01_y.tif")
-    src = cv2.resize(src, (512,512), interpolation=cv2.INTER_CUBIC)
-    src = src[:, :, 1]
 
-    tgt = cv2.imread("../teste-ordem/1/01_z.tif")
-    tgt = tgt[:, :, 1]
-
-    s1 = src[0:64, 0:64]
-    s2 = src[0:64, 64:128]
-    s3 = src[0:64, 128:192]
-    s4 = src[0:64, 192:256]
-
-    s5 = src[64:128, 0:64]
-    s6 = src[64:128, 64:128]
-    s7 = src[64:128, 128:192]
-    s8 = src[64:128, 192:256]
-
-    s9 = src[128:192, 0:64]
-    s10 = src[128:192, 64:128]
-    s11 = src[128:192, 128:192]
-    s12 = src[128:192, 192:256]
-
-    s13 = src[192:256, 0:64]
-    s14 = src[192:256, 64:128]
-    s15 = src[192:256, 128:192]
-    s16 = src[192:256, 192:256]
-
-    t1 = tgt[0:64, 0:64]
-    t2 = tgt[0:64, 64:128]
-    t3 = tgt[0:64, 128:192]
-    t4 = tgt[0:64, 192:256]
-
-    t5 = tgt[64:128, 0:64]
-    t6 = tgt[64:128, 64:128]
-    t7 = tgt[64:128, 128:192]
-    t8 = tgt[64:128, 192:256]
-
-    t9 = tgt[128:192, 0:64]
-    t10 = tgt[128:192, 64:128]
-    t11 = tgt[128:192, 128:192]
-    t12 = tgt[128:192, 192:256]
-
-    t13 = tgt[192:256, 0:64]
-    t14 = tgt[192:256, 64:128]
-    t15 = tgt[192:256, 128:192]
-    t16 = tgt[192:256, 192:256]
-
-    nova1 = np.block([[s1, t2, s3, t4], [t5, s6, t7, s8], [s9, t10, s11, t12], [t13, s14, t15, s16]])
-    nova2 = np.block([[t1, s2, t3, s4], [s5, t6, s7, t8], [t9, s10, t11, s12], [s13, t14, s15, t16]])
-    plt.subplot(1,2,1),plt.imshow(nova1,'gray')
-    plt.subplot(1,2,2),plt.imshow(nova2,'gray')
-    plt.show()
-
-
-def main():
-    src, tgt = load_test("Morph_Filters_all/", 0)
+def mean_results(paths_ref, paths_tgt, func, size):
+    src, tgt = load_test(paths_ref, paths_tgt, size)
     mean_data = []
-
-    print("A")
-
-    for i in range (len(src)):
-        mean_data.append(dice_bin(src[i], tgt[i]))
-
-    mean = s.mean(mean_data)
-    print(mean)
-    var = s.pstdev(mean_data, mu=mean)
-    print(var)
-
-    src, tgt = load_test("Morph_Filters_all/", 1)
-    mean_data = []
-
-    print("S")
-
     for i in range(len(src)):
-        mean_data.append(dice_bin(src[i], tgt[i]))
+        mean_data.append(func(src[i], tgt[i]))
 
     mean = s.mean(mean_data)
-    print(mean)
+    print('{:.4f}'.format(mean))
     var = s.pstdev(mean_data, mu=mean)
-    print(var)
+    print('{:.4f}'.format(var))
+    return mean, var
 
-    src, tgt = load_test("Morph_Filters_all/", 2)
-    mean_data = []
 
-    print("P")
+def main(size):
+    paths_ref = glob.glob("../DataBases/Segmentadas/A_s_fix/*.jpg")
+    paths_tgt = glob.glob("../DataBases/Teste/GFEMR_inv/A_s_inv/*.jpg")
 
-    for i in range(len(src)):
-        mean_data.append(dice_bin(src[i], tgt[i]))
+    print("A - MSE")
+    mean_results(paths_ref, paths_tgt, mse_distance, size)
+    print("A - SSIM")
+    mean_results(paths_ref, paths_tgt, ssim_distance, size)
+    print("A - DICE BIN")
+    mean_results(paths_ref, paths_tgt, dice_bin, size)
 
-    mean = s.mean(mean_data)
-    print(mean)
-    var = s.pstdev(mean_data, mu=mean)
-    print(var)
+    paths_ref = glob.glob("../DataBases/Segmentadas/S_s_fix/*.jpg")
+    paths_tgt = glob.glob("../DataBases/Teste/GFEMR_inv/S_s_inv/*.jpg")
 
+    print("\n")
+    print("S - MSE")
+    mean_results(paths_ref, paths_tgt, mse_distance, size)
+    print("S - SSIM")
+    mean_results(paths_ref, paths_tgt, ssim_distance, size)
+    print("S - DICE BIN")
+    mean_results(paths_ref, paths_tgt, dice_bin, size)
+
+    paths_ref = glob.glob("../DataBases/Teste/Ref/P_s_fix/*.jpg")
+    paths_tgt = glob.glob("../DataBases/Teste/GFEMR_inv/P_s_inv/*.jpg")
+
+    print("\n")
+    print("P - MSE")
+    mean_results(paths_ref, paths_tgt, mse_distance, size)
+    print("P - SSIM")
+    mean_results(paths_ref, paths_tgt, ssim_distance, size)
+    print("P - DICE BIN")
+    mean_results(paths_ref, paths_tgt, dice_bin, size)
+
+def colors_compare(path_green, path_mag, path_save):
+    #path_green = "../DataBases/Teste/New_Comp/07_y_green.png"
+    #path_mag = "../DataBases/Teste/New_Comp/Rempe_A07_z_mag.png"
+    y = cv2.imread(path_green)
+    y = cv2.resize(y, (512, 512), cv2.INTER_CUBIC)
+    x = cv2.imread(path_mag)
+    x = cv2.resize(x, (512, 512), cv2.INTER_CUBIC)
+    comp = y + x
+    cv2.imwrite(path_save, comp)
+
+
+def colors(c, path, path_save):
+    # Load the aerial image and convert to HSV colourspace
+    image = cv2.imread(path)
+    #image = cv2.bitwise_not(image)
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    # Define lower and uppper limits of what we call "brown"
+    brown_lo = np.array([0, 0, 25])
+    brown_hi = np.array([0, 0, 255])
+
+    # Mask image to only select browns
+    mask = cv2.inRange(hsv, brown_lo, brown_hi)
+
+    # Change image to red where we found brown
+    if (c):#green
+        image[mask > 0] = (0, 255, 0)
+    else:
+        image[mask > 0] = (255, 0, 255)
+
+    cv2.imwrite(path_save, image)
+
+def compare ():
+    #paths_ref = "../DataBases/Teste/Segmentadas/S_mov/S01_2.jpg"
+    #paths_tgt = "../teste-segnew/1/01_z.tif"
+    src = load_bin('../DataBases/Teste/Comp/Rempe/P01_1.jpg')
+    #src = cv2.resize(src, (512, 512))
+    tgt = load_bin('../DataBases/Teste/Comp/Rempe/p1.png')
+    d = dice_bin(src, tgt)
+    s = ssim_distance(src, tgt)
+    m = mse_distance(src, tgt)
+    print("Dice")
+    print(d)
+    print("SSIM")
+    print(s)
+    print("MSE")
+    print(m)
+
+def all_magenta():
+    path = glob.glob("../DataBases/Segmentadas/P_s_mov/*.jpg")
+
+    i = 0
+    for p in path:
+        ps = "../DataBases/Teste/Mov_mag/P_mag/{:02d}_z.png".format(i + 1)
+        colors(False, p, ps)
+        i = i + 1
+
+def all_comp():
+    paths_g = glob.glob("../DataBases/Teste/Ref_green/P_fix/*.png")
+    paths_m = glob.glob("../DataBases/Teste/Mov_mag/P_mag/*.png")
+
+    i = 0
+    for g, m in zip(paths_g, paths_m):
+        ps = "../DataBases/Teste/Before/P_comp/{:02d}_z.png".format(i + 1)
+        colors_compare(g, m, ps)
+        i = i + 1
 
 if __name__ == "__main__":
-    main()
+    all_magenta()
+    all_comp()
+    #main(512)
+
+
