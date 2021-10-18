@@ -19,13 +19,14 @@ def main():
     #mkdir("Morph_Filters")
 
     for i in range(3):
-        mkdir("Morph_Filters_all/" + str(i))
-        aux = glob.glob("../teste-ordem/" + str(i) + "/*.tif")
+        mkdir("Morph_Filters_clo/" + str(i))
+        aux = glob.glob("../TESTES/teste_512_postprocessing/" + str(i) + "/*.tif")
         for j in range(0, len(aux)):
             img = ev.load_bin(aux[j])
+
+            #op = opening(img=img)
             op = closing(img=img)
-            op = opening(img=op)
-            sk.imsave("Morph_Filters_all/" + str(i) + "/" + "/{:02d}_x.jpg".format(j), op)
+            sk.imsave("Morph_Filters_clo/" + str(i) + "/" + "/{:02d}_z.png".format(j+1), op)
 
 
 
