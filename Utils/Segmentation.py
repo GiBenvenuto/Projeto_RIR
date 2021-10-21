@@ -2,8 +2,14 @@ import numpy as np
 import IUWT_segmentation_for_testing as iuwt
 import cv2
 
-def segmentation (path):
-    img = cv2.imread(path)
+def segmentation (img= None, path=None):
+    if path is None:
+        if img is None:
+            print("ERROR - Missing Path and IMG")
+            exit(0)
+    else:
+        img = cv2.imread(path)
+
     II0=[]
     II0.append(img)
     num_pyr = 0
@@ -32,7 +38,7 @@ def segmentation (path):
     BW1 = (BW1 > 0)
     BW1 = 1 * BW1
     BW1 = BW1.astype('float')
-    BW1 = cv2.resize(BW1, (512,512), cv2.INTER_CUBIC)
+    #BW1 = cv2.resize(BW1, (512,512), cv2.INTER_CUBIC)
     cv2.imshow("Teste", BW1)
 
     #cv2.imwrite("teste.png", BW1)
