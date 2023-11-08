@@ -1,57 +1,51 @@
 import numpy as np
 import cv2
-from Utils import Convolution as conv
+from Segmentation import segmentation
 import csv
+import glob
 
 import matplotlib.pyplot as plt
 
+def preprocessing(path):
+    img = cv2.imread(path)
+    height = img.shape[0]
+    width = img.shape[1]
 
 
-# read images
-imgy = cv2.imread('01_x.tif')
-imgz = cv2.imread('01_z.tif')
+    if (not(height == width)):
+        new_img = crop(img, height, width)
 
-img1 = cv2.cvtColor(imgy, cv2.COLOR_BGR2GRAY)
-img2 = cv2.cvtColor(imgz, cv2.COLOR_BGR2GRAY)
+    seg_img = segmentation(new_img)
+    new_img = cv2.resize(seg_img, (512, 512), cv2.INTER_CUBIC)
 
-#sift
-sift = cv2.SIFT_create()
-
-keypoints_1, descriptors_1 = sift.detectAndCompute(img1,None)
-keypoints_2, descriptors_2 = sift.detectAndCompute(img2,None)
+    #cv2.imshow("Teste", new_img)
+    #cv2.waitKey(0)
 
 
+    return new_img
 
-bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
+def crop(img, height, width):
+    cy = height/2
+    cx = width/2
 
-matches = bf.match(descriptors_1,descriptors_2)
-matches = sorted(matches, key = lambda x:x.distance)
+    if (width > height):
+        crop_img = img[0:int(height), int(cx-cy):int(cx+cy)]
+    else:
+        crop_img = img[int(cy-cx):int(cy+cx), 0:int(width)]
+    return crop_img
 
-k1 = []
-k2 = []
-for m in matches:
-    k1.append(keypoints_1[m.queryIdx].pt)
-    k2.append(keypoints_2[m.trainIdx].pt)
+if __name__ == "__main__":
+    paths = glob.glob("../DataBases/DRIVE/test/images/*.tif")
+    j = 1
+    k = 1
 
 
-
-
-pts_ref = [np.array(k1[idx]) for idx in range(0, len(k1))]
-pts_ref = np.array(pts_ref)
-
-pts_warp = [np.array(k2[idx]) for idx in range(0, len(k2))]
-pts_warp = np.array(pts_warp)
-
-ref_file = open('ref1.csv', 'w')
-warp_file = open('warp1.csv', 'w')
-
-r_file = csv.writer(ref_file)
-w_file = csv.writer(warp_file)
-
-for i, j in zip(pts_ref, pts_warp):
-    r_file.writerow(i)
-    w_file.writerow(j)
-
-img3 = cv2.drawMatches(img1, keypoints_1, img2, keypoints_2, matches[:50], img2, flags=2)
-plt.imshow(img3),plt.show()
-
+    for i in paths:
+        img = cv2.imread(i)
+        new_img = crop(img, img.shape[0], img.shape[1])
+        #if j % 2 == 0:
+        cv2.imwrite("../DataBases/DRIVE/test/croped_images/{:02d}_test.png".format(j), new_img)
+        #else:
+        #   cv2.imwrite("../DataBases/allQuality/croped_images/{:02d}_good.png".format(k), new_img)
+        #    k = k + 1
+        j = j + 1
